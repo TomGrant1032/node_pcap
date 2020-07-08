@@ -12,6 +12,14 @@ inherits(TCPTracker, EventEmitter);
 TCPTracker.prototype.track_packet = function (packet) {
     var ip, tcp, src, dst, key, session;
 
+    // if packet has linktype LINKTYPE_RAW instead of LINKTYPE ETHERNET it will not be wrapped in
+    // an EthernetPacket. To track the valid IPv4 packet, we need to move this payload to fit the
+    // format of a EthernetPacket
+    if(packet.link_type === "LINKTYPE_RAW"){
+        const payload = { payload: packet.payload };
+        packet.payload = payload;
+    }
+
     if (packet.payload.payload instanceof IPv4 && packet.payload.payload.payload instanceof TCP) {
         ip  = packet.payload.payload;
         tcp = ip.payload;
